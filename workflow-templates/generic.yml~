@@ -1,0 +1,39 @@
+name: Generic pipeline integration
+on:
+  workflow_call:
+    inputs:
+      path:
+        type: string
+        required: false
+        default: '.'
+    secrets:
+      quay_username:
+        required: true
+        type: string
+
+      quay_pass:
+        required: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.quay_username }}
+          password: ${{ secrets.quay_pass }}
+
+      - name: Run the build script
+        working-directory: ${{ inputs.path }}
+        run: make build
+      - name: Run the test script
+        working-directory: ${{ inputs.path }}
+        run: make test
+      # - name: Run the deploy script
+      #   working-directory: ${{ inputs.path }}
+      #   run: make deploy
